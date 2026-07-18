@@ -1,0 +1,86 @@
+<!-- MODAL CIBERNÉTICO DE ALERTA -->
+@if (showModal) {
+<div class="cyber-modal-overlay">
+    <div class="cyber-modal-box">
+        <h4 class="cyber-modal-title">
+            <span style="color: #ff5757;">// ERROR</span> CONEXIÓN DETENIDA
+        </h4>
+        <p class="cyber-modal-text">{{ modalMessage }}</p>
+        <button type="button" class="btn-modal" (click)="resetScreen()">
+            ACEPTAR Y REINICIAR
+        </button>
+    </div>
+</div>
+}
+
+<div class="chat-container">
+    <div class="chat-content">
+
+        <!-- Botón HUD de regreso -->
+        <a routerLink="/" class="btn-back">&lt; // VOLVER AL INICIO</a>
+
+        <!-- TERMINAL DE COMUNICACIONES (MONITOR HUD) -->
+        <!-- El borde cambia según el color del usuario conectado -->
+        <div class="cyber-card-chat" [class.is-connected]="connected"
+            [style.border-color]="connected ? message.usuario.color : '#262a3a'">
+
+            <!-- CABECERA: Fondo mate dinámico -->
+            <div class="chat-header" [style.background-color]="getMutedColor(message.usuario.color)">
+                <div class="chat-header-title">
+                    <span class="status-led" [class.online]="connected"></span>
+                    <span>SYS_CHAT v.3.0// STOMP_RELATIONAL</span>
+                </div>
+
+                <div class="chat-controls">
+                    <input [(ngModel)]="message.usuario.username" class="cyber-input" placeholder="Tu Username..."
+                        name="username" [disabled]="connected" autocomplete="off">
+
+                    @if (!connected) {
+                    <button class="btn-connect" type="button" (click)="connect()"
+                        [disabled]="!message.usuario.username">CONECTAR</button>
+                    } @else {
+                    <button class="btn-disconnect" type="button" (click)="deconnect()">DESCONECTAR</button>
+                    }
+                </div>
+            </div>
+
+            @if (connected) {
+            <div class="chat-body" #chatBody>
+                @for (msg of messages; track $index) {
+                @if (msg.type == 'NEW_USER') {
+                <div class="chat-message-item sys-alert">
+                    <span class="msg-time">[{{ msg.date | date: 'HH:mm:ss' }}]</span>
+                    <span style="color: #a0a5bc;">SYSTEM &gt;&gt; </span>
+                    <span class="msg-user" [style.color]="msg.usuario.color">{{ msg.usuario.username }}</span>
+                    <span style="color: #7c5cff;">se ha unido!</span>
+                </div>
+                } @else if (msg.type == 'MESSAGE') {
+                <!-- MENSAJE CON FONDO DINÁMICO APAGADO Y BORDE DE COLOR -->
+                <div class="chat-message-item" [style.background-color]="getMutedColor(msg.usuario.color)"
+                    [style.border-left-color]="msg.usuario.color">
+                    <span class="msg-time">[{{ msg.date | date: 'HH:mm:ss' }}]</span>
+                    <span class="msg-user" [style.color]="msg.usuario.color">&#64;{{ msg.usuario.username }}:</span>
+                    <span style="color: #ffffff;">{{ msg.text }}</span>
+                </div>
+                }
+                }
+            </div>
+
+            <!-- PIE DE CHAT: Fondo mate basado en el color -->
+            <div class="chat-footer" [style.background-color]="getMutedColor(message.usuario.color)">
+                <form (ngSubmit)="onSendmessage()" autocomplete="off">
+                    <div class="chat-form-row">
+                        <input class="cyber-input" name="text" [(ngModel)]="message.text"
+                            placeholder="Escribe un mensaje..." (keyup)="onWritingEvent()">
+                        <button type="submit" class="btn-connect" style="min-width: 120px;">ENVIAR &gt;&gt;</button>
+                    </div>
+                </form>
+                <div class="writing-indicator">
+                    @if (writing) { <span>&gt;&gt; {{ writing }}</span> }
+                </div>
+            </div>
+            }
+        </div>
+
+    </div>
+</div>

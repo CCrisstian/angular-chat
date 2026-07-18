@@ -1,0 +1,355 @@
+<div class="docs-container">
+  <div class="docs-content">
+
+    <!-- Botón de regreso -->
+    <a routerLink="/" class="btn-back">&lt; // VOLVER AL INICIO</a>
+
+    <!-- Cabecera -->
+    <header class="docs-header">
+      <span class="cyber-tag">SYS_DOCS // VERSIÓN 1.8</span>
+      <h1 class="docs-title">Sistema de Mensajería en Tiempo Real con Spring Boot, Angular y WebSockets</h1>
+    </header>
+
+    <!-- SECCIÓN 1: Resumen y Funcionalidades -->
+    <section class="docs-section">
+      <h2>1. Resumen y Funcionalidades Clave</h2>
+      <p>
+        Esta aplicación implementa un sistema de Chat conversacional bidireccional en tiempo real que usa conexiones
+        persistentes mediante WebSockets y el protocolo STOMP . El sistema está diseñado con una arquitectura
+        desacoplada, contenerizada y desplegada íntegramente en infraestructura cloud gratuita .
+      </p>
+      <ul class="docs-list">
+        <li><strong>Notificaciones de Conexión y Registro Transparente:</strong> El sistema detecta y notifica en tiempo
+          real el ingreso de un nuevo usuario al Chat . Al conectarse, el Backend verifica si el usuario existe en la
+          Base de Datos; si es la primera vez que ingresa, lo registra automáticamente asignándole de forma aleatoria un
+          color distintivo .</li>
+        <li><strong>Notificaciones de Desconexión:</strong> Se monitorean los eventos de ciclo de vida de la sesión
+          (cierre de pestaña, pérdida de red o salida voluntaria) para emitir alertas y actualizar el conteo de usuarios
+          activos en el Servidor .</li>
+        <li><strong>Indicador de Actividad en Tiempo Real:</strong> Intercepta los eventos de teclado del Cliente para
+          transmitir de manera instantánea el estado *"Cristian está escribiendo..."* a todos los integrantes de la
+          sala, disipando la notificación automáticamente tras 3 segundos de inactividad .</li>
+        <li><strong>Persistencia y Recuperación Relacional del Historial:</strong> Los mensajes conversacionales son
+          guardados permanentemente en PostgreSQL . Al ingresar, cada Cliente solicita el historial y el Backend se lo
+          transmite de forma privada y exclusiva a su sesión sin saturar el canal público .</li>
+      </ul>
+    </section>
+
+    <!-- SECCIÓN 2: Fundamentos y Métodos STOMP -->
+    <section class="docs-section">
+      <h2>2. Fundamentos del Protocolo STOMP y WebSockets</h2>
+      <p>
+        La aplicación opera sobre WebSockets, proporcionando un canal de comunicación TCP bidireccional entre el
+        navegador y el Servidor. Sobre este canal TCP, se implementa S.T.O.M.P. (Simple Text Oriented Messaging
+        Protocol) . STOMP actúa como un estándar formal que impone semántica, reglas de enrutamiento y un patrón
+        arquitectónico de Publicación/Suscripción gestionado por un Broker de mensajes dentro de Spring Boot . Esto
+        permite canalizar múltiples flujos de datos independientes simultáneamente sobre una única conexión física .
+      </p>
+
+      <h3>Métodos STOMP Implementados en el Cliente (Angular)</h3>
+      <p>
+        El ciclo de vida de la comunicación en el Frontend se administra mediante la librería
+        <code>&#64;stomp/stompjs</code> y el transporte alternativo <code>sockjs-client</code>, empleando los siguientes
+        métodos estratégicos :
+      </p>
+      <ul class="docs-list">
+        <li><strong>activate():</strong> Es el gatillo de encendido . Inicia el proceso abriendo el socket subyacente y
+          enviando el frame STOMP CONNECT al Servidor de Spring Boot para negociar la sesión .</li>
+        <li><strong>onConnect:</strong> Callback de captura que se dispara en el milisegundo exacto en que el Servidor
+          responde con un frame CONNECTED. Confirma que el canal bidireccional está operativo; dentro de este evento se
+          estructuran las escuchas (<code>subscribe</code>) y el aviso inicial de ingreso.</li>
+        <li><strong>subscribe(destino, callback):</strong> Abre una escucha pasiva en un canal del Broker. Cada vez que
+          el Servidor empuja una actualización a ese destino, se ejecuta el bloque de código del callback .</li>
+        <li><strong>subscribe (Anidados):</strong> Patrón de diseño donde una suscripción se ejecuta en la respuesta de
+          otra. En el proyecto: el Cliente escucha primero el canal público del Chat; al recibir su propio eco de
+          bienvenida con el ID numérico ya generado por PostgreSQL, ejecuta una segunda suscripción al canal privado de
+          su historial antes de solicitar los registros antiguos.</li>
+        <li><strong>publish(&#123; destination, body &#125;):</strong> Es la acción activa de transmisión ("hablar").
+          Envía un paquete de datos serializados en JSON hacia las rutas de Spring Boot.</li>
+        <li><strong>onStompError:</strong> Interceptor de excepciones del protocolo. Se activa cuando Spring Boot aborta
+          un intento de conexión o envía un frame de tipo ERROR (como cuando el <code>WebSocketLimitInterceptor</code>
+          detecta que la sala superó los 4 usuarios). Se utiliza para desmontar la interfaz y renderizar el modal de
+          alerta en la vista.</li>
+        <li><strong>onDisconnect:</strong> Escucha el cierre de la conexión física o lógica. Deshabilita los controles
+          de envío y habilita el botón de reintento.</li>
+        <li><strong>deactivate():</strong> Ejecuta una desconexión limpia. Envía un frame DISCONNECT, interrumpe el
+          bucle de reconexión automática de STOMP y libera el canal para que el Servidor pueda admitir a un nuevo
+          Cliente en la sala.</li>
+      </ul>
+    </section>
+
+    <!-- SECCIÓN 3: Comparativa -->
+    <section class="docs-section">
+      <h2>3. Comparativa Arquitectónica: WebSockets vs. REST</h2>
+      <div class="cyber-table-wrapper">
+        <table class="cyber-table">
+          <thead>
+            <tr>
+              <th>CRITERIO</th>
+              <th>WEBSOCKETS (SOCKETS + STOMP)</th>
+              <th>REST (HTTP TRADICIONAL)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Modelo de Comunicación</strong></td>
+              <!-- CELDA 1: WEBSOCKETS (Animación Rápida Bidireccional) -->
+              <td>
+                <div class="table-cell-flex">
+                  <p>
+                    Bidireccional en tiempo real entre cliente y servidor. El servidor empuja (push) datos
+                    proactivamente
+                    hacia el cliente en cuanto ocurren, permitiendo una comunicación continua inter-clientes mediada por
+                    el
+                    broker.
+                  </p>
+                  <div class="hud-diagram">
+                    <span class="hud-node">CLIENTE</span>
+                    <div class="hud-track">
+                      <span class="arrow-packet ws-right">─►</span>
+                      <span class="arrow-packet ws-left">◄─</span>
+                    </div>
+                    <span class="hud-node">SERVIDOR</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- CELDA 2: REST (Animación Lenta Secuencial: Request -> Response) -->
+              <td>
+                <div class="table-cell-flex">
+                  <p>
+                    Unidireccional y reactivo bajo el modelo de petición-respuesta (request-response). El servidor solo
+                    transmite información si el cliente lo solicita explícitamente primero mediante una petición HTTP.
+                  </p>
+                  <div class="hud-diagram">
+                    <span class="hud-node">CLIENTE</span>
+                    <div class="hud-track">
+                      <span class="arrow-packet rest-req">─►</span>
+                      <span class="arrow-packet rest-res">◄─</span>
+                    </div>
+                    <span class="hud-node">SERVIDOR</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Gestión de Conexiones y URLs</strong></td>
+              <td>Se utiliza una única URL de punto de entrada para establecer el handshake inicial. Toda la
+                comunicación posterior viaja estructurada sobre esa misma conexión TCP abierta.</td>
+              <td>Se requieren múltiples URLs y endpoints para cada recurso y operación CRUD. Cada solicitud abre y
+                cierra una nueva conexión (o ciclo de intercambio) con sobrecarga de cabeceras HTTP en cada viaje.</td>
+            </tr>
+            <tr>
+              <td><strong>Casos de Uso Ideales</strong></td>
+              <td>Aplicaciones con alta frecuencia de actualización en vivo: salas de Chat, juegos multijugador,
+                dashboards financieros, herramientas colaborativas de edición y notificaciones críticas.</td>
+              <td>Aplicaciones transaccionales estándar, consultas de bases de datos, operaciones CRUD, autenticación
+                sin estado y descarga de contenidos estáticos o reportes.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 4: Seguridad y Control de Recursos -->
+    <section class="docs-section">
+      <h2>4. Arquitectura de Seguridad y Control de Recursos</h2>
+      <p>
+        Para garantizar la estabilidad del Servidor y prevenir la saturación de recursos, el sistema aplica dos barreras
+        de control de alta prioridad :
+      </p>
+
+      <h3>Control de Concurrencia en el Backend (Límite de 4 Usuarios)</h3>
+      <p>
+        Se implementó un interceptor de canal (<code>WebSocketLimitInterceptor</code>) que implementa la interfaz
+        <code>ChannelInterceptor</code> de Spring :
+      </p>
+      <ul class="docs-list">
+        <li>Antes de permitir la suscripción al Broker, el sistema evalúa los frames que contienen el comando STOMP
+          CONNECT.</li>
+        <li>Mantiene un registro en memoria de las sesiones activas utilizando un conjunto concurrente
+          (<code>ConcurrentHashMap.newKeySet()</code>).</li>
+        <li>Si el tamaño del registro alcanza el límite máximo de 4 usuarios simultáneos, el Servidor aborta el
+          Handshake lanzando una excepción (<code>MessagingException</code>), la cual es capturada por el Frontend para
+          congelar la interfaz y mostrar un modal explicativo.</li>
+        <li>Mediante la anotación <code>&#64;EventListener</code> escuchando el evento
+          <code>SessionDisconnectEvent</code>, el Servidor elimina el ID de sesión del conjunto tan pronto como un
+          socket se cierra, liberando el cupo de forma instantánea.
+        </li>
+      </ul>
+
+      <h3>Limpieza Automática de la Base de Datos (Cada 30 Minutos)</h3>
+      <p>
+        Para evitar la acumulación infinita de registros de prueba, se configuró una tarea programada directamente en el
+        motor relacional de Supabase (mediante la extensión nativa <code>pg_cron</code>) . Cada media hora, el motor
+        ejecuta un truncado en cascada, vaciando las tablas, reiniciando los IDs autoincrementales y manteniendo el
+        almacenamiento optimizado sin consumir hilos de procesamiento ni ancho de banda de la red del Backend .
+      </p>
+    </section>
+
+    <!-- SECCIÓN 5: Stack Tecnológico -->
+    <section class="docs-section">
+      <h2>5. Stack Tecnológico y Despliegue en la Nube</h2>
+      <p>
+        El proyecto está construido bajo los estándares de una arquitectura cloud-native moderna, dividiendo las
+        responsabilidades en servicios de alta disponibilidad:
+      </p>
+      <ul class="docs-list">
+
+        <!-- PUNTO 1: FRONTEND -->
+        <li>
+          <strong>Frontend (Interfaz de Usuario):</strong> Desarrollado con el framework Angular, utilizando
+          <code>&#64;stomp/stompjs</code> para la gestión de WebSockets y <code>sockjs-client</code> como estrategia de
+          compatibilidad (fallback). Desplegado como aplicación estática globalmente distribuida en Vercel.
+
+          <!-- ÍCONOS FRONTEND -->
+          <div class="tech-grid">
+            <div class="tech-item mint">
+              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/angular/angular-original.svg"
+                alt="Angular" />
+              <span class="tech-name">Angular</span>
+            </div>
+            <div class="tech-item mint">
+              <img src="https://cdn.simpleicons.org/vercel/FFFFFF" alt="Vercel" />
+              <span class="tech-name">Vercel</span>
+            </div>
+            <div class="tech-item mint">
+              <img src="https://cdn.simpleicons.org/socketdotio/FFFFFF" alt="WebSockets" />
+              <span class="tech-name">WebSockets</span>
+            </div>
+          </div>
+        </li>
+
+        <!-- PUNTO 2: BACKEND -->
+        <li>
+          <strong>Backend (Lógica y Broker de Mensajería):</strong> Desarrollado en Java 21 con Spring Boot 4.1.0.
+          Utiliza el módulo <code>spring-boot-starter-websocket</code> para exponer el Broker simple en memoria y
+          <code>spring-boot-starter-data-jpa</code> para el mapeo ORM con Hibernate. Para autorizar de forma segura las
+          peticiones cruzadas, el Servidor configura explícitamente patrones de CORS admitiendo el dominio de Vercel y
+          el entorno de desarrollo local. El Backend se empaqueta en una imagen Docker y se hospeda en contenedores
+          sobre Render.
+
+          <!-- ÍCONOS BACKEND -->
+          <div class="tech-grid">
+            <div class="tech-item purple">
+              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg"
+                alt="Java 21" />
+              <span class="tech-name">Java 21</span>
+            </div>
+            <div class="tech-item purple">
+              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/spring/spring-original.svg"
+                alt="Spring Boot" />
+              <span class="tech-name">Spring Boot 4.1.0</span>
+            </div>
+            <div class="tech-item purple">
+              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg"
+                alt="Docker" />
+              <span class="tech-name">Docker</span>
+            </div>
+            <div class="tech-item purple">
+              <img src="https://cdn.simpleicons.org/render/46E3B7" alt="Render" />
+              <span class="tech-name">Render</span>
+            </div>
+          </div>
+        </li>
+
+        <!-- PUNTO 3: BASE DE DATOS -->
+        <li>
+          <strong>Base de Datos (Persistencia Relacional):</strong> Motor PostgreSQL alojado en la plataforma Supabase.
+          Se conecta vía JDBC utilizando un pool de conexiones optimizado que garantiza alta velocidad en
+          transacciones simples de lectura/escritura.
+
+          <!-- ÍCONOS BASE DE DATOS -->
+          <div class="tech-grid">
+            <div class="tech-item purple">
+              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg"
+                alt="PostgreSQL" />
+              <span class="tech-name">PostgreSQL</span>
+            </div>
+            <div class="tech-item purple">
+              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/supabase/supabase-original.svg"
+                alt="Supabase" />
+              <span class="tech-name">Supabase</span>
+            </div>
+          </div>
+        </li>
+
+      </ul>
+    </section>
+
+    <!-- SECCIÓN 6: Base de Datos (SQL) -->
+    <section class="docs-section">
+      <h2>6. Modelo de Datos y Esquema Relacional (SQL)</h2>
+      <p>
+        La persistencia del Chat se modela mediante dos tablas estrictamente normalizadas, unidas por una relación de
+        llave foránea para mantener la coherencia referencial entre los perfiles creados y el historial de mensajes:
+      </p>
+
+      <!-- DIAGRAMA VISUAL ENTIDAD-RELACIÓN -->
+      <div class="er-diagram">
+
+        <!-- RECTÁNGULO 1: TABLA USUARIOS -->
+        <div class="er-card">
+          <!-- Compartimento 1: Nombre -->
+          <div class="er-header">
+            <span>usuarios</span>
+          </div>
+          <!-- Compartimento 2: Atributos -->
+          <div class="er-body">
+            <div class="er-row pk">
+              <span class="col-name"><span class="col-badge pk-badge">PK</span> id</span>
+              <span class="col-type">BIGINT</span>
+            </div>
+            <div class="er-row">
+              <span class="col-name">username</span>
+              <span class="col-type">VARCHAR [UQ]</span>
+            </div>
+            <div class="er-row">
+              <span class="col-name">color</span>
+              <span class="col-type">VARCHAR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- LÍNEA DISCONTINUA DE RELACIÓN -->
+        <div class="er-connector">
+          <span class="connector-text">1 : N (CASCADE)</span>
+          <div class="connector-line"></div>
+          <span class="connector-sub">id ◄ - - - - - - ► usuario_id</span>
+        </div>
+
+        <!-- RECTÁNGULO 2: TABLA MENSAJES -->
+        <div class="er-card">
+          <!-- Compartimento 1: Nombre -->
+          <div class="er-header">
+            <span>messages</span>
+          </div>
+          <!-- Compartimento 2: Atributos -->
+          <div class="er-body">
+            <div class="er-row pk">
+              <span class="col-name"><span class="col-badge pk-badge">PK</span> id</span>
+              <span class="col-type">BIGINT</span>
+            </div>
+            <div class="er-row fk">
+              <span class="col-name"><span class="col-badge fk-badge">FK</span> usuario_id</span>
+              <span class="col-type">BIGINT</span>
+            </div>
+            <div class="er-row">
+              <span class="col-name">date</span>
+              <span class="col-type">TIMESTAMPTZ</span>
+            </div>
+            <div class="er-row">
+              <span class="col-name">text</span>
+              <span class="col-type">VARCHAR</span>
+            </div>
+            <div class="er-row">
+              <span class="col-name">type</span>
+              <span class="col-type">VARCHAR</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</div>

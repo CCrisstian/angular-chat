@@ -1,0 +1,228 @@
+/* Contenedor principal: Fondo negro intenso, flexible y con desbordamiento oculto para animaciones */
+.cyber-container {
+  min-height: 100vh;
+  background-color: #07070a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  padding: 40px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  flex-wrap: wrap; /* Permite que las tarjetas bajen si no hay espacio horizontal */
+}
+
+/* ==========================================
+   FONDO ANIMADO CYBERPUNK (HUD MOTION)
+   ========================================== */
+
+/* 1. Cuadrícula de coordenadas en movimiento perpetuo */
+.cyber-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(to right, rgba(124, 92, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 255, 182, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridMove 20s linear infinite;
+  z-index: 0;
+}
+
+@keyframes gridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+/* 2. Núcleo de energía neón pulsante en el centro */
+.cyber-glow {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(124, 92, 255, 0.15) 0%, rgba(56, 255, 182, 0.05) 50%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulseGlow 8s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+@keyframes pulseGlow {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
+/* 3. Líneas de escaneo estilo monitor CRT / HUD táctico */
+.scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.35) 50%,
+      rgba(0, 0, 0, 0.35));
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ==========================================
+   TARJETAS Y BOTONES (HUD CARDS)
+   ========================================== */
+
+/* Base de las tarjetas: z-index 2 para flotar sobre el fondo animado */
+.cyber-card {
+  width: 320px;
+  height: 480px;
+  background-color: #141520;
+  border: 2px solid #262a3a;
+  border-radius: 12px;
+  padding: 40px 30px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.cyber-card:hover {
+  transform: scale(1.06);
+}
+
+.cyber-label {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  font-family: monospace;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.cyber-card h2 {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.cyber-card p {
+  color: #a0a5bc;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Botones inferiores simulando un HUD */
+.cyber-button {
+  text-align: center;
+  padding: 14px 0;
+  font-family: monospace;
+  font-weight: bold;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+/* ==========================================
+   ACENTOS MENTA (#38ffb6) - TARJETA CHAT
+   ========================================== */
+.card-mint .cyber-label {
+  color: #38ffb6;
+}
+
+.card-mint:hover {
+  border-color: #38ffb6;
+  box-shadow: 0 0 30px rgba(56, 255, 182, 0.25), inset 0 0 15px rgba(56, 255, 182, 0.1);
+}
+
+.btn-mint {
+  background-color: rgba(56, 255, 182, 0.05);
+  color: #38ffb6;
+  border: 1px solid #38ffb6;
+}
+
+.card-mint:hover .btn-mint {
+  background-color: #38ffb6;
+  color: #07070a;
+  box-shadow: 0 0 15px rgba(56, 255, 182, 0.6);
+}
+
+/* ==========================================
+   ACENTOS MORADOS (#7c5cff) - TARJETA DOCS
+   ========================================== */
+.card-purple .cyber-label {
+  color: #7c5cff;
+}
+
+.card-purple:hover {
+  border-color: #7c5cff;
+  box-shadow: 0 0 30px rgba(124, 92, 255, 0.3), inset 0 0 15px rgba(124, 92, 255, 0.1);
+}
+
+.btn-purple {
+  background-color: rgba(124, 92, 255, 0.05);
+  color: #7c5cff;
+  border: 1px solid #7c5cff;
+}
+
+.card-purple:hover .btn-purple {
+  background-color: #7c5cff;
+  color: #07070a;
+  box-shadow: 0 0 15px rgba(124, 92, 255, 0.6);
+}
+
+/* ==========================================
+   ADAPTACIÓN RESPONSIVE (MÓVILES Y TABLETS)
+   ========================================== */
+
+@media (max-width: 768px) {
+  /* Apilamos las tarjetas verticalmente y reducimos la separación */
+  .cyber-container {
+    flex-direction: column;
+    gap: 30px;
+    padding: 40px 20px;
+  }
+
+  /* Hacemos que las tarjetas ocupen el ancho disponible sin rebasar la pantalla */
+  .cyber-card {
+    width: 100%;
+    max-width: 340px;
+    height: 420px; /* Reducimos ligeramente la altura en móvil para evitar scroll excesivo */
+    padding: 30px 24px;
+  }
+
+  /* Desactivamos la escala en hover en pantallas táctiles y ponemos un borde neón permanente pero sutil */
+  .cyber-card:hover {
+    transform: none;
+  }
+
+  .card-mint {
+    border-color: rgba(56, 255, 182, 0.4);
+  }
+
+  .card-purple {
+    border-color: rgba(124, 92, 255, 0.4);
+  }
+
+  /* Ajuste tipográfico para pantallas chicas */
+  .cyber-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 14px;
+  }
+
+  .cyber-card p {
+    font-size: 0.9rem;
+  }
+}

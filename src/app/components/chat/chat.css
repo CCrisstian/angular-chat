@@ -1,0 +1,407 @@
+/* ==========================================
+   1. BASE Y CONTENEDOR PRINCIPAL
+   ========================================== */
+
+.chat-container {
+    min-height: 100vh;
+    background-color: #07070a;
+    color: #a0a5bc;
+    padding: 50px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    box-sizing: border-box;
+}
+
+.chat-content {
+    width: 100%;
+    max-width: 860px;
+}
+
+/* Botón HUD de regreso (Acento Menta Neón #38ffb6) */
+.btn-back {
+    display: inline-block;
+    color: #38ffb6;
+    /* Color principal menta */
+    text-decoration: none;
+    font-family: monospace;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    border: 1px solid #38ffb6;
+    /* Borde menta */
+    border-radius: 4px;
+    background-color: rgba(56, 255, 182, 0.05);
+    /* Fondo inicial menta muy sutil */
+    transition: all 0.3s ease;
+    margin-bottom: 30px;
+}
+
+.btn-back:hover {
+    background-color: #38ffb6;
+    /* Fondo menta sólido al pasar el cursor */
+    color: #07070a;
+    /* Texto negro intenso para alto contraste */
+    box-shadow: 0 0 15px rgba(56, 255, 182, 0.6);
+    /* Resplandor neón menta */
+}
+
+/* ==========================================
+   2. TERMINAL DE COMUNICACIÓN (MONITOR HUD)
+   ========================================== */
+
+.cyber-card-chat {
+    background-color: #141520;
+    border: 2px solid #262a3a;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 255, 182, 0.08);
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.3s ease;
+}
+
+/* Cuando estamos conectados, el borde brilla en Menta Neón */
+.cyber-card-chat.is-connected {
+    border-color: #38ffb6;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 255, 182, 0.15);
+}
+
+/* Cabecera / Barra de controles */
+.chat-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #262a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.chat-header-title {
+    font-family: monospace;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Luz LED indicadora de estado en la cabecera */
+.status-led {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ff3838;
+    box-shadow: 0 0 8px #ff3838;
+    transition: all 0.3s ease;
+}
+
+.status-led.online {
+    background-color: #38ffb6;
+    box-shadow: 0 0 8px #38ffb6;
+}
+
+/* Controles de conexión (Inputs y Botones de la cabecera) */
+.chat-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ==========================================
+   3. INPUTS Y BOTONES CIBERNÉTICOS
+   ========================================== */
+
+.cyber-input {
+    background-color: #07070a;
+    border: 1px solid #262a3a;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 10px 14px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.cyber-input:focus {
+    border-color: #38ffb6;
+    box-shadow: 0 0 10px rgba(56, 255, 182, 0.2);
+}
+
+.cyber-input:disabled {
+    background-color: rgba(7, 7, 10, 0.4);
+    color: #a0a5bc;
+    border-color: #1e212d;
+    cursor: not-allowed;
+}
+
+/* Botón Conectar (Menta Neón #38ffb6) */
+.btn-connect {
+    background-color: rgba(56, 255, 182, 0.05);
+    color: #38ffb6;
+    border: 1px solid #38ffb6;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-family: monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-connect:hover:not(:disabled) {
+    background-color: #38ffb6;
+    color: #07070a;
+    box-shadow: 0 0 15px rgba(56, 255, 182, 0.6);
+}
+
+.btn-connect:disabled {
+    border-color: #262a3a;
+    color: #262a3a;
+    background-color: transparent;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Botón Desconectar (Morado Neón #7c5cff o Rojo Advertencia) */
+.btn-disconnect {
+    background-color: rgba(255, 87, 87, 0.05);
+    color: #ff5757;
+    border: 1px solid #ff5757;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-family: monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-disconnect:hover {
+    background-color: #ff5757;
+    color: #07070a;
+    box-shadow: 0 0 15px rgba(255, 87, 87, 0.6);
+}
+
+/* ==========================================
+   4. CUERPO DEL CHAT Y SCROLL HUD
+   ========================================== */
+
+.chat-body {
+    height: 300px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    padding: 20px 24px;
+    background-color: #0c0d14;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Scrollbar personalizado estilo HUD */
+.chat-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-body::-webkit-scrollbar-track {
+    background: #07070a;
+}
+
+.chat-body::-webkit-scrollbar-thumb {
+    background: #262a3a;
+    border-radius: 3px;
+}
+
+.chat-body::-webkit-scrollbar-thumb:hover {
+    background: #38ffb6;
+}
+
+/* Burbujas y renglones de mensaje */
+.chat-message-item {
+    font-family: monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-left: 2px solid #262a3a;
+    border-radius: 0 4px 4px 0;
+    word-break: break-word;
+    animation: fadeIn 0.3s ease;
+}
+
+.chat-message-item.sys-alert {
+    border-left-color: #7c5cff;
+    background-color: rgba(124, 92, 255, 0.05);
+}
+
+.msg-time {
+    color: #585d76;
+    font-size: 0.75rem;
+    margin-right: 8px;
+}
+
+.msg-user {
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+/* ==========================================
+   5. PIE DEL CHAT Y BARRA DE ENVÍO
+   ========================================== */
+
+/* Pie del chat / Barra de transmisión */
+.chat-footer {
+    padding: 16px 24px;
+    /* Mismo padding que la cabecera */
+    border-top: 1px solid #262a3a;
+}
+
+.chat-form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.chat-form-row .cyber-input {
+    flex-grow: 1;
+}
+
+/* Indicador operativo: "Cristian está escribiendo..." */
+.writing-indicator {
+    height: 20px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #38ffb6;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* ==========================================
+   6. MODAL DE ALERTA CIBERNÉTICO (HUD RED ALERT)
+   ========================================== */
+
+.cyber-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(7, 7, 10, 0.9);
+    /* Fondo más oscuro para el overlay */
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+.cyber-modal-box {
+    background-color: #07070a;
+    /* Fondo negro mate */
+    border: 2px solid #ff5757;
+    /* Borde rojo neón */
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(255, 87, 87, 0.3);
+    /* Resplandor rojo */
+}
+
+.cyber-modal-title {
+    color: #ffffff;
+    font-family: monospace;
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.cyber-modal-text {
+    color: #a0a5bc;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+/* Botón iluminado rojo */
+.btn-modal {
+    background-color: rgba(255, 87, 87, 0.1);
+    /* Fondo rojo muy suave */
+    color: #ff5757;
+    border: 1px solid #ff5757;
+    border-radius: 4px;
+    padding: 10px 24px;
+    font-family: monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-modal:hover {
+    background-color: #ff5757;
+    /* Fondo rojo sólido al hacer hover */
+    color: #07070a;
+    /* Texto negro para contraste */
+    box-shadow: 0 0 15px rgba(255, 87, 87, 0.6);
+    /* Iluminación potente */
+}
+
+/* ==========================================
+   7. KEYFRAMES Y RESPONSIVE
+   ========================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        padding: 30px 12px;
+    }
+
+    .chat-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .chat-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-connect,
+    .btn-disconnect {
+        width: 100%;
+        text-align: center;
+    }
+
+    .chat-form-row {
+        flex-direction: column;
+    }
+
+    .chat-body {
+        height: 340px;
+        padding: 15px;
+    }
+}
