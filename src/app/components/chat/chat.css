@@ -3,6 +3,8 @@
    ========================================== */
 
 .chat-container {
+    position: relative;
+    overflow: hidden;
     min-height: 100vh;
     background-color: #07070a;
     color: #a0a5bc;
@@ -15,6 +17,8 @@
 }
 
 .chat-content {
+    position: relative;
+    z-index: 2;
     width: 100%;
     max-width: 860px;
 }
@@ -404,4 +408,77 @@
         height: 340px;
         padding: 15px;
     }
+}
+
+/* ==========================================
+   FONDO ANIMADO CYBERPUNK (HUD MOTION)
+   ========================================== */
+
+/* 1. Cuadrícula de coordenadas en movimiento perpetuo */
+.cyber-grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(to right, rgba(124, 92, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 255, 182, 0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 20s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes gridMove {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 40px 40px;
+    }
+}
+
+/* 2. Núcleo de energía neón pulsante en el centro */
+.cyber-glow {
+    position: fixed;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(124, 92, 255, 0.15) 0%, rgba(56, 255, 182, 0.05) 50%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulseGlow 8s ease-in-out infinite alternate;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes pulseGlow {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* 3. Líneas de escaneo estilo monitor CRT / HUD táctico */
+.scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0) 50%,
+            rgba(0, 0, 0, 0.35) 50%,
+            rgba(0, 0, 0, 0.35));
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 1;
 }
