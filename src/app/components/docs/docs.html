@@ -11,7 +11,7 @@
 
     <!-- Cabecera -->
     <header class="docs-header">
-      <span class="cyber-tag">SYS_DOCS // v 2.0</span>
+      <span class="cyber-tag">SYS_DOCS // v 2.5</span>
       <h1 class="docs-title">Sistema de Mensajería en Tiempo Real con Spring Boot, Angular y WebSockets</h1>
     </header>
 
@@ -51,11 +51,12 @@
         permite canalizar múltiples flujos de datos independientes simultáneamente sobre una única conexión física .
       </p>
 
-      <h3>Métodos STOMP Implementados en el Cliente (Angular)</h3>
+      <h3>Métodos STOMP y Control de Ciclo de Vida (Angular)</h3>
       <p>
         El ciclo de vida de la comunicación en el Frontend se administra mediante la librería
-        <code>&#64;stomp/stompjs</code> y el transporte alternativo <code>sockjs-client</code>, empleando los siguientes
-        métodos estratégicos :
+        <code>&#64;stomp/stompjs</code> y el transporte alternativo <code>sockjs-client</code>, combinándolos
+        estratégicamente
+        con los hooks y decoradores nativos del framework :
       </p>
       <ul class="docs-list">
         <li><strong>activate():</strong> Es el gatillo de encendido . Inicia el proceso abriendo el socket subyacente y
@@ -80,6 +81,18 @@
         <li><strong>deactivate():</strong> Ejecuta una desconexión limpia. Envía un frame DISCONNECT, interrumpe el
           bucle de reconexión automática de STOMP y libera el canal para que el Servidor pueda admitir a un nuevo
           Cliente en la sala.</li>
+        <li><strong>ngOnDestroy():</strong> Hook nativo del ciclo de vida de Angular que se dispara automáticamente al
+          destruirse el componente (al presionar el botón "Volver al inicio" o navegar hacia atrás). En
+          el proyecto se integra para invocar <code>deactivate()</code> de manera instantánea, garantizando que el
+          socket
+          se cierre y libere el cupo en el Servidor al momento de salir de la vista sin esperar a la desconexión por
+          timeout.</li>
+        <li><strong>&#64;HostListener('window:beforeunload'):</strong> Decorador arquitectónico que vincula métodos del
+          componente directamente con eventos globales del navegador o del sistema operativo. Intercepta el cierre
+          físico
+          de la pestaña, la recarga del navegador o el cierre de la ventana para gatillar una desconexión limpia e
+          inmediata antes de que la página se destruya, evitando que queden "sesiones fantasma" ocupando espacio en el
+          límite máximo de 4 usuarios del Backend.</li>
       </ul>
     </section>
 
